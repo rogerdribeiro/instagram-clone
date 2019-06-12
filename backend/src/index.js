@@ -1,14 +1,28 @@
 const express = require("express");
-const app = express();
 const mongoose = require("mongoose");
+const path = require("path");
+const cors = require("cors");
 
-mongoose.connect(
-  "mongodb+srv://instaclone:050697@cluster0-b3uf8.mongodb.net/test?retryWrites=true&w=majority",
-  {
-    useNewUrlParser: true
-  }
+const app = express();
+
+const server = require("http").Server(app);
+const io = require("socket.io")(server);
+const dbConfig = require("./config/db");
+
+mongoose.connect(dbConfig.uri, dbConfig.config);
+
+app.use(cors());
+
+app.use((req, res, next) => {
+  req.io = io;
+  next();
+});
+
+app.use(
+  "/files",
+  express.static(path.resolve(__dirname, "..", "uploads", "resized"))
 );
 
 app.use(require("./routes"));
 
-app.listen(process.env.PORT || 3333);
+server.listen(process.env.PORT || 3333);

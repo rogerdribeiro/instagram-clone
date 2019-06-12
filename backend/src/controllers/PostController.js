@@ -13,10 +13,13 @@ module.exports = {
     const { author, place, description, hashtags } = req.body;
     const { filename: image } = req.file;
 
+    const [name, ext] = image.split(".");
+    const filename = `${name}.jpg`;
+
     await sharp(req.file.path)
       .resize(500) //tamanho da max da img
       .jpeg({ quality: 70 }) //qualidade 70%
-      .toFile(path.resolve(req.file.destination, "resized", image));
+      .toFile(path.resolve(req.file.destination, "resized", filename));
 
     fs.unlinkSync(req.file.path); //deleta a img original
 
@@ -25,8 +28,11 @@ module.exports = {
       place,
       description,
       hashtags,
-      image
+      image: filename
     });
+
+    req.io.emit("post", post);
+
     return res.json(post);
   }
 };
